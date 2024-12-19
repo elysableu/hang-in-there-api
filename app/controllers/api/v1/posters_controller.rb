@@ -36,7 +36,8 @@ class Api::V1::PostersController < ApplicationController
       render json: { error: "Poster not found" }, status: :not_found
     end
   end
-  
+
+  # Koiree: Whenever the Error Manager is implemented 
   # def destroy
   #   # Koiree: Let Error Manager handle if the poster is not found
   #   poster = Poster.find(params[:id])

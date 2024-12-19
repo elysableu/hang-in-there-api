@@ -5,7 +5,7 @@ class Poster < ApplicationRecord
   # Validations for the Poster model
 
   # Ensure that the 'name' attribute is present and not empty
-  validates :name, presence: true
+  validates :name, presence: true, uniqueness: true
 
   # Ensure that the 'description' attribute is present and not empty
   validates :description, presence: true

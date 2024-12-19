@@ -41,23 +41,24 @@ RSpec.describe "Poster endpoints", type: :request do
     end
   end
  
-  #Koiree: This RSpec file tests the Posters API endpoints, specifically the "show" action.
-  #Koiree: Testing the GET /api/v1/posters/:id endpoint
+  #Koiree: This RSpec file tests the Posters API endpoints, specifically the "show" and "destroy" actions.
+
   describe "GET /api/v1/posters/:id" do
-       #Koiree: Create test data to ensure there is a poster record in the database for the test cases.
+    #Koiree: Create test data to ensure there is a poster record in the database for the test cases.
     let!(:poster) do
       Poster.create!(
-        name: "FAILURE", #Test poster's name.
-        description: "Why bother trying? It's probably not worth it.", #Test poster's description.
-        price: 68.00, #Test poster's price.
-        year: 2019, #Test poster's year of creation.
-        vintage: true, #Indicates if the poster is vintage.
-        img_url: "https://images.unsplash.com/photo-1620401537439-98e94c004b0d" #Test poster's image URL.
+        name: "FAILURE", 
+        description: "Why bother trying? It's probably not worth it.", 
+        price: 68.00, 
+        year: 2019, 
+        vintage: true, 
+        img_url: "https://images.unsplash.com/photo-1620401537439-98e94c004b0d"
       )
     end
 
     #Koiree: Store the ID of the created poster for easy access during tests.
     let(:poster_id) { poster.id }
+
     #Koiree: Context for when the requested record exists.
     context "when the record exists" do
       it "returns the poster with the correct structure" do
@@ -66,6 +67,9 @@ RSpec.describe "Poster endpoints", type: :request do
 
         #Koiree: Parse the JSON response to a Ruby hash with symbolized keys.
         json_response = JSON.parse(response.body, symbolize_names: true)
+
+        # Debug: Inspect the full JSON response if something is wrong
+        binding.pry if json_response.nil? || json_response[:data].nil?
 
         #Koiree: Check that the HTTP response status is 200 OK.
         expect(response).to have_http_status(:ok)
@@ -77,7 +81,7 @@ RSpec.describe "Poster endpoints", type: :request do
         data = json_response[:data]
 
         #Koiree: Check that the ID is correct and returned as a string.
-        expect(data[:id]).to eq(poster_id.to_s)
+        expect(data[:id]).to eq(poster_id)
 
         #Koiree: Verify that the type key matches the expected resource type.
         expect(data[:type]).to eq("poster")
@@ -85,13 +89,16 @@ RSpec.describe "Poster endpoints", type: :request do
         #Koiree: Extract the "attributes" section for validation.
         attributes = data[:attributes]
 
+        # Debug: Check the attributes hash if unexpected results
+        binding.pry unless attributes.is_a?(Hash)
+
         #Koiree: Validate each field in the "attributes" section.
-        expect(attributes[:name]).to eq("FAILURE") #Koiree: Verify the "name" matches.
-        expect(attributes[:description]).to eq("Why bother trying? It's probably not worth it.") #Koiree: Verify the "description".
-        expect(attributes[:price]).to eq(68.00) #Koiree: Verify the "price" matches.
-        expect(attributes[:year]).to eq(2019) #Koiree: Verify the "year" matches.
-        expect(attributes[:vintage]).to be true #Koiree: Verify the "vintage" field is true
-        expect(attributes[:img_url]).to eq("https://images.unsplash.com/photo-1620401537439-98e94c004b0d") #Koiree: Verify the "img_url".
+        expect(attributes[:name]).to eq("FAILURE")
+        expect(attributes[:description]).to eq("Why bother trying? It's probably not worth it.")
+        expect(attributes[:price]).to eq(68.00)
+        expect(attributes[:year]).to eq(2019)
+        expect(attributes[:vintage]).to be true
+        expect(attributes[:img_url]).to eq("https://images.unsplash.com/photo-1620401537439-98e94c004b0d")
       end
     end
 
@@ -104,14 +111,99 @@ RSpec.describe "Poster endpoints", type: :request do
         #Koiree: Parse the JSON response to a Ruby hash with symbolized keys.
         json_response = JSON.parse(response.body, symbolize_names: true)
 
+        # Debug: Check if the error message is correct
+        binding.pry unless json_response[:error]
+
         #Koiree: Check that the HTTP response status is 404 Not Found.
         expect(response).to have_http_status(:not_found)
 
         #Koiree: Verify the error message in the response.
-        expect(json_response[:error]).to eq("Poster not found") #Koiree: Verify the "error" message.
+        expect(json_response[:error]).to eq("Poster not found")
       end
     end
   end
+
+  describe "DELETE /api/v1/posters/:id" do
+    context "when the poster exists" do
+      let!(:poster) do
+        Poster.create!(
+          name: "Delete Me",
+          description: "Temporary poster",
+          price: 50.00,
+          year: 2010,
+          vintage: true,
+          img_url: "https://example.com/delete-me.jpg"
+        )
+      end
+
+      it "deletes the poster and returns 204" do
+        expect {
+          delete "/api/v1/posters/#{poster.id}"
+        }.to change { Poster.count }.by(-1)
+
+        expect(response).to have_http_status(:no_content)
+      end
+    end
+
+    context "when the poster does not exist" do
+      it "returns a 404 not found status with an error message" do
+        delete "/api/v1/posters/9999" # Non-existent ID
+
+        expect(response).to have_http_status(:not_found)
+
+        json_response = JSON.parse(response.body, symbolize_names: true)
+        expect(json_response[:error]).to eq("Poster not found")
+      end
+    end
+  end
+
+=begin
+ Koiree: When the Error Manager is implemented NOT Complete
+  # # DELETE Endpoint Tests
+  # describe "DELETE /api/v1/posters/:id" do
+  #   let!(:poster) do
+  #     Poster.create!(
+  #       name: "Delete Me",
+  #       description: "This poster is temporary.",
+  #       price: 50.00,
+  #       year: 2010,
+  #       vintage: true,
+  #       img_url: "https://example.com/delete-me.jpg"
+  #     )
+  #   end
+
+  #   let(:poster_id) { poster.id }
+
+  #   context "when the poster exists" do
+  #     it "deletes the poster and returns a 204 status" do
+  #       # Ensure the poster exists before deletion
+  #       expect(Poster.find_by(id: poster_id)).not_to be_nil
+
+  #       # Ensure the poster count decreases by 1
+  #       expect {
+  #         delete "/api/v1/posters/#{poster_id}"
+  #       }.to change { Poster.count }.by(-1)
+
+  #       # Ensure the status code is 204 No Content
+  #       expect(response).to have_http_status(:no_content)
+  #     end
+  #   end
+
+  #   context "when the poster does not exist" do
+  #     it "returns a 404 not found status with an error message" do
+  #       delete "/api/v1/posters/9999" # Non-existent poster ID
+
+  #       # Ensure the status is 404 Not Found
+  #       expect(response).to have_http_status(:not_found)
+
+  #       json_response = JSON.parse(response.body, symbolize_names: true)
+
+  #       # Ensure the correct error message is returned
+  #       expect(json_response[:error]).to eq("Poster not found")
+  #     end
+  #   end
+  # end
+=end
 
   describe "POST /create" do
     it "can post a new poster" do 
