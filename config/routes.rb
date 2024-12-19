@@ -8,6 +8,4 @@ Rails.application.routes.draw do
   get "/api/v1/posters/:id", to: "api/v1/posters#show"
   post "/api/v1/posters", to: "api/v1/posters#create"
   patch "/api/v1/posters/:id", to: "api/v1/posters#update"
-  
-  get "/api/v1/posters", to: "api/v1/posters#count"
 end
