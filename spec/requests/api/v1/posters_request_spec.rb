@@ -51,7 +51,7 @@ RSpec.describe "Posters API", type: :request do
         expect(attributes[:description]).to eq("Why bother trying? It's probably not worth it.") #Koiree: Verify the "description".
         expect(attributes[:price]).to eq(68.00) #Koiree: Verify the "price" matches.
         expect(attributes[:year]).to eq(2019) #Koiree: Verify the "year" matches.
-        expect(attributes[:vintage]).to be true #Koiree: Verify the "vintage" field is true.
+        expect(attributes[:vintage]).to be true #Koiree: Verify the "vintage" field is true
         expect(attributes[:img_url]).to eq("https://images.unsplash.com/photo-1620401537439-98e94c004b0d") #Koiree: Verify the "img_url".
       end
     end
