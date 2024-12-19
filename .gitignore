@@ -1,5 +1,2 @@
 # Ignore tmp directory and Bootsnap cache files
-/tmp/*
-/tmp/cache/
-/tmp/cache/bootsnap
 /log/*.log
