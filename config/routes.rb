@@ -9,4 +9,5 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   post "/api/v1/posters", to: "api/v1/posters#create"
+  patch "/api/v1/posters/:id", to: "api/v1/posters#update"
 end
