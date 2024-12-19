@@ -7,14 +7,21 @@ class PosterSerializer
     }
   end
 
+ # Format the poster to match the desired JSON structure
+  def self.format_poster(poster)
+    {
+      data: formatter(poster)   
+    }
+  end
+ 
   def self.formatter(poster)
     {
-      id: poster.id.to_s,
+      id: poster.id,
       type: "poster",
       attributes: {
         name: poster.name,
         description: poster.description,
-        price: poster.price.to_f, # Explicitly cast price to float
+        price: format("%.3f", poster.price).to_f,
         year: poster.year,
         vintage: poster.vintage,
         img_url: poster.img_url
