@@ -209,4 +209,34 @@ RSpec.describe "Poster endpoints", type: :request do
       expect(posters[1][:id].to_i).to eq(posterSuccess.id)
     end
   end
+  
+  describe " GET /count" do
+    before(:each) do
+      Poster.create(
+        name: "Authenticity",
+        description: "Truly being yourself in the face of adversity",
+        price: 69.99,
+        year: 1978,
+        vintage: true,
+        img_url: "https://davidirvine.com/living-and-leading-with-authenticity-how-weve-missed-the-mark-and-how-we-can-correct-it/"
+      )
+      
+      Poster.create(
+        name: "???????",
+        description: "Yay more confusion",
+        price: 19.99,
+        year: 2000,
+        vintage: false,
+        img_url: "https://media.npr.org/assets/img/2015/12/14/confused-2eb86f2e782cd35f3932f9bd34e48788d0741e9d.jpg"
+      )
+    end
+
+    it "can count existing posters" do
+      get "/api/v1/posters"
+      posters = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to be_successful
+      expect(posters[:meta][:count]).to eq(2)
+    end
+  end
 end
