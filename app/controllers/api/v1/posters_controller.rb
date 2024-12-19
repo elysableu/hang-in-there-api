@@ -22,7 +22,7 @@ module Api
             attributes: {
               name: poster.name,
               description: poster.description,
-              price: poster.price,
+              price: poster.price.to_f, # Cast price explicitly to float
               year: poster.year,
               vintage: poster.vintage,
               img_url: poster.img_url
