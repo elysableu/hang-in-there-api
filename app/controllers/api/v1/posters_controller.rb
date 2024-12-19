@@ -3,7 +3,7 @@ class Api::V1::PostersController < ApplicationController
   def index 
     posters = Poster.all
     # require "pry": binding.pry
-    render json: PosterSerializer.format_posters(posters)
+    render json: PosterSerializer.format_posters(posters, {count: Poster.all.count})
   end
   
  # GET /api/v1/posters/:id
