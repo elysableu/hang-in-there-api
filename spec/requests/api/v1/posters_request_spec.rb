@@ -77,7 +77,7 @@ RSpec.describe "Poster endpoints", type: :request do
         data = json_response[:data]
 
         #Koiree: Check that the ID is correct and returned as a string.
-        expect(data[:id]).to eq(poster_id.to_s)
+        expect(data[:id]).to eq(poster_id)
 
         #Koiree: Verify that the type key matches the expected resource type.
         expect(data[:type]).to eq("poster")
@@ -173,6 +173,40 @@ RSpec.describe "Poster endpoints", type: :request do
       expect(poster_updated.year).to eq(updated_attributes[:year])
       expect(poster_updated.vintage).to eq(updated_attributes[:vintage])
       expect(poster_updated.img_url).to eq(updated_attributes[:img_url])
+    end
+  end
+
+  describe "GET /api/v1/posters?sort=asc" do
+    it "can sort posters by created_at in ascending order" do
+      posterSuccess = Poster.create!(name: "Success", description: "Progress over progression", price: 120.00, year: 2024, vintage: false, img_url: "https://gist.github.com/user-attachments/assets/7adbaca3-c952-49c9-b3ab-1c4dbb6e0fc8")
+      posterFailure = Poster.create!(name: "Failure", description: "Loss over win", price: 150.00, year: 1995, vintage: true, img_url: "https://despair.com/cdn/shop/products/failure-is-not-an-option.jpg?v=1569992574")
+
+      get "/api/v1/posters?sort=asc"
+
+      expect(response).to be_successful
+      posters = JSON.parse(response.body, symbolize_names: true)[:data]
+
+      expect(posters.count).to eq(2)
+
+      expect(posters[0][:id].to_i).to eq(posterSuccess.id)
+      expect(posters[1][:id].to_i).to eq(posterFailure.id)
+    end
+  end
+
+  describe "GET /api/v1/posters?sort=desc" do
+    it "can sort posters by created_at in descending order" do
+      posterSuccess = Poster.create!(name: "Success", description: "Progress over progression", price: 120.00, year: 2024, vintage: false, img_url: "https://gist.github.com/user-attachments/assets/7adbaca3-c952-49c9-b3ab-1c4dbb6e0fc8")
+      posterFailure = Poster.create!(name: "Failure", description: "Loss over win", price: 150.00, year: 1995, vintage: true, img_url: "https://despair.com/cdn/shop/products/failure-is-not-an-option.jpg?v=1569992574")
+
+      get "/api/v1/posters?sort=desc"
+
+      expect(response).to be_successful
+      posters = JSON.parse(response.body, symbolize_names: true)[:data]
+
+      expect(posters.count).to eq(2)
+      
+      expect(posters[0][:id].to_i).to eq(posterFailure.id)
+      expect(posters[1][:id].to_i).to eq(posterSuccess.id)
     end
   end
 end
