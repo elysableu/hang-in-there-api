@@ -1,8 +1,10 @@
 class Api::V1::PostersController < ApplicationController
   
   def index 
-    posters = Poster.all
-    # require "pry": binding.pry
+    # sort order if there is a parameter
+    sort = { "desc" => :desc, "asc" => :asc }[params[:sort]]   
+    # fetch the poster if there is a parameter and if not it will default to fetching all with no parameters
+    posters = sort ? Poster.order(created_at: sort) : Poster.all
     render json: PosterSerializer.format_posters(posters)
   end
   
