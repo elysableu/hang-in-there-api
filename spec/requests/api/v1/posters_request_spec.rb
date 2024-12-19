@@ -42,7 +42,7 @@ RSpec.describe "Poster endpoints", type: :request do
   end
   
   describe "POST /create" do
-    it "can post a new song" do 
+    it "can post a new poster" do 
       poster_params = {
                   name: "Authenticity",
                   description: "Truly being yourself in the face of adversity",
@@ -65,6 +65,42 @@ RSpec.describe "Poster endpoints", type: :request do
       expect(created_poster.year).to eq(poster_params[:year])
       expect(created_poster.vintage).to eq(poster_params[:vintage])
       expect(created_poster.img_url).to eq(poster_params[:img_url])
+    end
+  end
+
+  describe "PATCH /update" do
+    it "can update an existing poster" do
+      poster = Poster.create!(
+        name: "???????",
+        description: "Yay more confusion",
+        price: 19.99,
+        year: 2000,
+        vintage: false,
+        img_url: "https://media.npr.org/assets/img/2015/12/14/confused-2eb86f2e782cd35f3932f9bd34e48788d0741e9d.jpg"
+      )
+
+      updated_attributes = {
+        name: "!!!!!!!",
+        description: "No more confusion!",
+        price: 20.99,
+        year: 2010,
+        vintage: true,
+        img_url: "https://www.shutterstock.com/image-vector/operation-thinking-understand-mastering-new-260nw-2461099445.jpg"
+      }
+
+      headers = { "CONTENT_TYPE" => "application/json"}
+
+      patch "/api/v1/posters/#{poster.id}", headers: headers, params: JSON.generate(poster:  updated_attributes)
+      poster_updated = Poster.find(poster.id)
+      
+      expect(response).to be_successful
+
+      expect(poster_updated.name).to eq(updated_attributes[:name])
+      expect(poster_updated.description).to eq(updated_attributes[:description])
+      expect(poster_updated.price).to eq(updated_attributes[:price])
+      expect(poster_updated.year).to eq(updated_attributes[:year])
+      expect(poster_updated.vintage).to eq(updated_attributes[:vintage])
+      expect(poster_updated.img_url).to eq(updated_attributes[:img_url])
     end
   end
 end
