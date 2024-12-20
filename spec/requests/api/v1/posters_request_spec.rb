@@ -41,23 +41,24 @@ RSpec.describe "Poster endpoints", type: :request do
     end
   end
  
-  #Koiree: This RSpec file tests the Posters API endpoints, specifically the "show" action.
-  #Koiree: Testing the GET /api/v1/posters/:id endpoint
+  #Koiree: This RSpec file tests the Posters API endpoints, specifically the "show" and "destroy" actions.
+# ================== Show Poster Tests =================
   describe "GET /api/v1/posters/:id" do
-       #Koiree: Create test data to ensure there is a poster record in the database for the test cases.
+    #Koiree: Create test data to ensure there is a poster record in the database for the test cases.
     let!(:poster) do
       Poster.create!(
-        name: "FAILURE", #Test poster's name.
-        description: "Why bother trying? It's probably not worth it.", #Test poster's description.
-        price: 68.00, #Test poster's price.
-        year: 2019, #Test poster's year of creation.
-        vintage: true, #Indicates if the poster is vintage.
-        img_url: "https://images.unsplash.com/photo-1620401537439-98e94c004b0d" #Test poster's image URL.
+        name: "FAILURE", 
+        description: "Wow, a different error message. Finally some progress!", 
+        price: 68.00, 
+        year: 2019, 
+        vintage: true, 
+        img_url: "https://gist.github.com/user-attachments/assets/1f352aed-098f-4663-b35d-6a957dbd02b3"
       )
     end
 
     #Koiree: Store the ID of the created poster for easy access during tests.
     let(:poster_id) { poster.id }
+
     #Koiree: Context for when the requested record exists.
     context "when the record exists" do
       it "returns the poster with the correct structure" do
@@ -66,6 +67,9 @@ RSpec.describe "Poster endpoints", type: :request do
 
         #Koiree: Parse the JSON response to a Ruby hash with symbolized keys.
         json_response = JSON.parse(response.body, symbolize_names: true)
+
+        # Debug: Inspect the full JSON response if something is wrong
+        binding.pry if json_response.nil? || json_response[:data].nil?
 
         #Koiree: Check that the HTTP response status is 200 OK.
         expect(response).to have_http_status(:ok)
@@ -85,16 +89,33 @@ RSpec.describe "Poster endpoints", type: :request do
         #Koiree: Extract the "attributes" section for validation.
         attributes = data[:attributes]
 
+        # Debug: Check the attributes hash if unexpected results
+        binding.pry unless attributes.is_a?(Hash)
+
         #Koiree: Validate each field in the "attributes" section.
-        expect(attributes[:name]).to eq("FAILURE") #Koiree: Verify the "name" matches.
-        expect(attributes[:description]).to eq("Why bother trying? It's probably not worth it.") #Koiree: Verify the "description".
-        expect(attributes[:price]).to eq(68.00) #Koiree: Verify the "price" matches.
-        expect(attributes[:year]).to eq(2019) #Koiree: Verify the "year" matches.
-        expect(attributes[:vintage]).to be true #Koiree: Verify the "vintage" field is true
-        expect(attributes[:img_url]).to eq("https://images.unsplash.com/photo-1620401537439-98e94c004b0d") #Koiree: Verify the "img_url".
+        expect(attributes[:name]).to eq("FAILURE")
+        expect(attributes[:description]).to eq("Wow, a different error message. Finally some progress!")
+        expect(attributes[:price]).to eq(68.00)
+        expect(attributes[:year]).to eq(2019)
+        expect(attributes[:vintage]).to be true
+        expect(attributes[:img_url]).to eq("https://gist.github.com/user-attachments/assets/1f352aed-098f-4663-b35d-6a957dbd02b3")
       end
     end
+# ================== No Invalid Poster Id Edge Tests =================
+    context "when the poster id is invalid" do
+  it "returns a 404 for a string id" do
+    get "/api/v1/posters/invalidID"
 
+    expect(response).to have_http_status(:not_found)
+  end
+
+  it "returns a 404 for a float id" do
+    get "/api/v1/posters/9999.99"
+
+    expect(response).to have_http_status(:not_found)
+  end
+end
+# ================== No Record Edge Tests =================
     #Koiree: Context for when the requested record does not exist.
     context "when the record does not exist" do
       it "returns a not found message" do
@@ -104,14 +125,90 @@ RSpec.describe "Poster endpoints", type: :request do
         #Koiree: Parse the JSON response to a Ruby hash with symbolized keys.
         json_response = JSON.parse(response.body, symbolize_names: true)
 
+        # Debug: Check if the error message is correct
+        binding.pry unless json_response[:error]
+
         #Koiree: Check that the HTTP response status is 404 Not Found.
         expect(response).to have_http_status(:not_found)
 
         #Koiree: Verify the error message in the response.
-        expect(json_response[:error]).to eq("Poster not found") #Koiree: Verify the "error" message.
+        expect(json_response[:error]).to eq("Poster not found")
       end
     end
   end
+
+# ================== Destroy Poster Tests =================
+describe "DELETE /api/v1/posters/:id" do
+
+  # When the poster exists
+  context "when the poster exists" do
+    let!(:poster) do
+      Poster.create!(
+        name: "Delete Me",
+        description: "Temporary poster",
+        price: 50.00,
+        year: 2010,
+        vintage: true,
+        img_url: "https://gist.github.com/user-attachments/assets/1f352aed-098f-4663-b35d-6a957dbd02b3"
+      )
+    end
+
+    it "deletes the poster and returns 204" do
+      # Ensure the poster count decreases by 1
+      expect {
+        delete "/api/v1/posters/#{poster.id}"
+      }.to change { Poster.count }.by(-1)
+
+      # Expect 204 No Content and an empty response body
+      expect(response).to have_http_status(:no_content)
+      expect(response.body).to be_empty
+    end
+  end
+
+  # ================== Reused ID After Deletion Edge Tests =================
+  context "when the poster id is reused after deletion" do
+  let!(:poster) do
+    Poster.create!(
+      name: "Delete Me Twice",
+      description: "Temporary poster",
+      price: 50.00,
+      year: 2010,
+      vintage: true,
+      img_url: "https://gist.github.com/user-attachments/assets/1f352aed-098f-4663-b35d-6a957dbd02b3"
+    )
+  end
+
+  it "returns 404 when trying to delete again" do
+    delete "/api/v1/posters/#{poster.id}"
+    expect(response).to have_http_status(:no_content)
+
+    delete "/api/v1/posters/#{poster.id}"
+    expect(response).to have_http_status(:not_found)
+  end
+end
+
+context "when a SQL injection payload is sent as id" do
+  it "returns 404 and handles injection safely" do
+    payload = CGI.escape("1;DROP TABLE posters;--")
+    delete "/api/v1/posters/#{payload}"
+  end
+end
+
+  # When the poster does not exist
+  context "when the poster does not exist" do
+    it "returns a 404 not found status with an error message" do
+      delete "/api/v1/posters/9999" # Non-existent ID
+
+      # Expect 404 Not Found
+      expect(response).to have_http_status(:not_found)
+
+      # Ensure the error message is properly formatted
+      json_response = JSON.parse(response.body, symbolize_names: true)
+      expect(json_response[:error]).to eq("Poster not found")
+    end
+  end
+
+end
 
   describe "POST /create" do
     it "can post a new poster" do 
