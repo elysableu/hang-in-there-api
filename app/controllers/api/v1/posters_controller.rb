@@ -1,10 +1,22 @@
 class Api::V1::PostersController < ApplicationController
   
   def index 
-    posters = Poster.all
-    # require "pry": binding.pry
-    render json: PosterSerializer.format_posters(posters)
+    # sort order if there is a parameter
+    sort = { "desc" => :desc, "asc" => :asc }[params[:sort]]   
+    # fetch the poster if there is a parameter and if not it will default to fetching all with no parameters
+    posters = sort ? Poster.order(created_at: sort) : Poster.all
+
+    if params[:name].present? 
+      posters = Poster.where("name ILIKE ?", "%#{params[:name]}%")
+    elsif params[:min_price].present? 
+      posters = Poster.where("price >= ?", params[:min_price])
+    elsif params[:max_price].present?
+      posters = Poster.where("price <= ?", params[:max_price])
+    end
+
+    render json: PosterSerializer.format_posters(posters, {count: posters.count})
   end
+  
   
  # GET /api/v1/posters/:id
   def show
@@ -37,20 +49,11 @@ class Api::V1::PostersController < ApplicationController
     end
   end
 
-  # Koiree: Whenever the Error Manager is implemented 
-  # def destroy
-  #   # Koiree: Let Error Manager handle if the poster is not found
-  #   poster = Poster.find(params[:id])
-
-  #   # Koiree: Destroy the record and return 204 No Content
-  #   poster.destroy
-  #   head :no_content
-  # end
-
   private
   
   def poster_params
     params.require(:poster).permit(:name, :description, :price, :year, :vintage, :img_url)
   end
 end
+
 
