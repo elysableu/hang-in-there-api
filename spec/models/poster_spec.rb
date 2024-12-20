@@ -1,4 +1,4 @@
-#Koiree: This RSpec test checks model validations for the Poster model.
+# Koiree: This RSpec test checks model validations for the Poster model.
 
 require 'rails_helper'
 
@@ -6,11 +6,12 @@ RSpec.describe Poster, type: :model do
   describe 'validations' do
     subject do
       Poster.new(
-        name: "Sample Poster", 
-        description: "Sample Description", 
+        name: "Developer Mental Struggle", 
+        description: "My code is & is not working and I don't know why", 
         price: 15.99, 
         year: 2023, 
-        vintage: true
+        vintage: true, 
+        img_url: "https://gist.github.com/user-attachments/assets/b43aa61c-d674-44c7-a29e-7b72d086b3b1"
       )
     end
 
@@ -19,6 +20,7 @@ RSpec.describe Poster, type: :model do
     it { should validate_presence_of(:description) }
     it { should validate_presence_of(:price) }
     it { should validate_presence_of(:year) }
+    it { should validate_presence_of(:img_url) }
 
     # Uniqueness Validation (Case Insensitive)
     it "validates uniqueness of name (case-insensitive)" do
@@ -27,7 +29,8 @@ RSpec.describe Poster, type: :model do
         description: "Another Description", 
         price: 10.00, 
         year: 2020, 
-        vintage: false
+        vintage: false, 
+        img_url: "https://gist.github.com/user-attachments/assets/b43aa61c-d674-44c7-a29e-7b72d086b3b1"
       )
       expect(subject).to validate_uniqueness_of(:name).case_insensitive
     end
@@ -56,5 +59,15 @@ RSpec.describe Poster, type: :model do
 
     # Boolean Inclusion Validation
     it { should validate_inclusion_of(:vintage).in_array([true, false]) }
+
+    # Format Validation
+    it "validates format of img_url" do
+      subject.img_url = "invalid_url"
+      expect(subject).not_to be_valid
+      expect(subject.errors[:img_url]).to include("must be a valid URL")
+
+      subject.img_url = "https://gist.github.com/user-attachments/assets/b43aa61c-d674-44c7-a29e-7b72d086b3b1"
+      expect(subject).to be_valid
+    end
   end
 end
