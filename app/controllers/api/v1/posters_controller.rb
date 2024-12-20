@@ -5,7 +5,6 @@ class Api::V1::PostersController < ApplicationController
     sort = { "desc" => :desc, "asc" => :asc }[params[:sort]]   
     # fetch the poster if there is a parameter and if not it will default to fetching all with no parameters
     posters = sort ? Poster.order(created_at: sort) : Poster.all
-<<<<<<< HEAD
 
     if params[:name].present? 
       posters = Poster.where("name ILIKE ?", "%#{params[:name]}%")
@@ -16,9 +15,6 @@ class Api::V1::PostersController < ApplicationController
     end
 
     render json: PosterSerializer.format_posters(posters, {count: posters.count})
-=======
-    render json: PosterSerializer.format_posters(posters, {count: Poster.all.count}))
->>>>>>> 8f5cd29761602b237c3456db13566d60ba33a941
   end
   
   

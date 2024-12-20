@@ -44,10 +44,14 @@ RSpec.describe "Poster endpoints", type: :request do
  
   #Koiree: This RSpec file tests the Posters API endpoints, specifically the "show" and "destroy" actions.
 <<<<<<< HEAD
+<<<<<<< HEAD
   # ================== Show Endpoint =================
 =======
 # ================== Show Poster Tests =================
 >>>>>>> main
+=======
+# ================== Show Poster Tests =================
+>>>>>>> 8f5cd29761602b237c3456db13566d60ba33a941
   describe "GET /api/v1/posters/:id" do
     #Koiree: Create test data to ensure there is a poster record in the database for the test cases.
     let!(:poster) do
@@ -113,10 +117,13 @@ RSpec.describe "Poster endpoints", type: :request do
     get "/api/v1/posters/invalidID"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     # ================== Sad Path Tests =================
 
     # ================== Sad Path: Record Not Found =================
 =======
+=======
+>>>>>>> 8f5cd29761602b237c3456db13566d60ba33a941
     expect(response).to have_http_status(:not_found)
   end
 
@@ -127,7 +134,7 @@ RSpec.describe "Poster endpoints", type: :request do
   end
 end
 # ================== No Record Edge Tests =================
->>>>>>> main
+
     #Koiree: Context for when the requested record does not exist.
     context "when the record does not exist" do
       it "returns a not found message" do
@@ -295,12 +302,10 @@ end
         delete "/api/v1/posters/#{payload}"
       end
     end
-<<<<<<< HEAD
+
  # ================== DELETE Does Not Exist Test =================
-=======
 
     # When the poster does not exist
->>>>>>> main
     context "when the poster does not exist" do
       it "returns a 404 not found status with an error message" do
         delete "/api/v1/posters/9999" # Non-existent ID
@@ -380,6 +385,40 @@ end
     end
   end
 
+  describe "GET /api/v1/posters?sort=asc" do
+    it "can sort posters by created_at in ascending order" do
+      posterSuccess = Poster.create!(name: "Success", description: "Progress over progression", price: 120.00, year: 2024, vintage: false, img_url: "https://gist.github.com/user-attachments/assets/7adbaca3-c952-49c9-b3ab-1c4dbb6e0fc8")
+      posterFailure = Poster.create!(name: "Failure", description: "Loss over win", price: 150.00, year: 1995, vintage: true, img_url: "https://despair.com/cdn/shop/products/failure-is-not-an-option.jpg?v=1569992574")
+
+      get "/api/v1/posters?sort=asc"
+
+      expect(response).to be_successful
+      posters = JSON.parse(response.body, symbolize_names: true)[:data]
+
+      expect(posters.count).to eq(2)
+
+      expect(posters[0][:id].to_i).to eq(posterSuccess.id)
+      expect(posters[1][:id].to_i).to eq(posterFailure.id)
+    end
+  end
+
+  describe "GET /api/v1/posters?sort=desc" do
+    it "can sort posters by created_at in descending order" do
+      posterSuccess = Poster.create!(name: "Success", description: "Progress over progression", price: 120.00, year: 2024, vintage: false, img_url: "https://gist.github.com/user-attachments/assets/7adbaca3-c952-49c9-b3ab-1c4dbb6e0fc8")
+      posterFailure = Poster.create!(name: "Failure", description: "Loss over win", price: 150.00, year: 1995, vintage: true, img_url: "https://despair.com/cdn/shop/products/failure-is-not-an-option.jpg?v=1569992574")
+
+      get "/api/v1/posters?sort=desc"
+
+      expect(response).to be_successful
+      posters = JSON.parse(response.body, symbolize_names: true)[:data]
+
+      expect(posters.count).to eq(2)
+      
+      expect(posters[0][:id].to_i).to eq(posterFailure.id)
+      expect(posters[1][:id].to_i).to eq(posterSuccess.id)
+    end
+  end
+  
   describe " GET /count" do
     before(:each) do
       Poster.create(
