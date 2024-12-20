@@ -2,6 +2,7 @@ require 'rails_helper'
 require 'pry'
 
 RSpec.describe "Poster endpoints", type: :request do
+  # ================== Index Endpoint =================
   describe "GET /index" do
     it "can send a list of posters" do
       # pending "add some examples to (or delete) #{__FILE__}"
@@ -42,7 +43,7 @@ RSpec.describe "Poster endpoints", type: :request do
   end
  
   #Koiree: This RSpec file tests the Posters API endpoints, specifically the "show" and "destroy" actions.
-
+  # ================== Show Endpoint =================
   describe "GET /api/v1/posters/:id" do
     #Koiree: Create test data to ensure there is a poster record in the database for the test cases.
     let!(:poster) do
@@ -59,6 +60,7 @@ RSpec.describe "Poster endpoints", type: :request do
     #Koiree: Store the ID of the created poster for easy access during tests.
     let(:poster_id) { poster.id }
 
+    # ================== Successful Request =================
     #Koiree: Context for when the requested record exists.
     context "when the record exists" do
       it "returns the poster with the correct structure" do
@@ -102,6 +104,9 @@ RSpec.describe "Poster endpoints", type: :request do
       end
     end
 
+    # ================== Sad Path Tests =================
+
+    # ================== Sad Path: Record Not Found =================
     #Koiree: Context for when the requested record does not exist.
     context "when the record does not exist" do
       it "returns a not found message" do
@@ -122,7 +127,100 @@ RSpec.describe "Poster endpoints", type: :request do
       end
     end
   end
-# Removed Error Manager pieces from my code- For Kevin
+    # ================== Sad Path: Invalid ID Format =================
+  # ================== Sad Path Missing Attributes Tests =================
+  # POST Missing Attributes
+  describe "POST /api/v1/posters with missing attributes" do
+    it "returns 422 Unprocessable Entity with an error message" do
+      poster_params = { name: "Incomplete Poster" }
+
+      headers = { "CONTENT_TYPE" => "application/json" }
+      post "/api/v1/posters", headers: headers, params: JSON.generate(poster: poster_params)
+
+      json_response = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json_response[:errors]).to include("Description can't be blank")
+      expect(json_response[:errors]).to include("Price can't be blank")
+      expect(json_response[:errors]).to include("Year can't be blank")
+      expect(json_response[:errors]).to include("Vintage is not included in the list")
+      expect(json_response[:errors]).to include("Img url can't be blank")
+    end
+  end
+
+  # ================== Sad Path Can't Create Duplicate Name Tests =================
+  # POST Can't Create Duplicate Name
+  describe "POST /api/v1/posters with duplicate name" do
+    before do
+      Poster.create!(
+        name: "Duplicate Poster",
+        description: "This is the first poster",
+        price: 50.00,
+        year: 2010,
+        vintage: true,
+        img_url: "https://example.com/duplicate-poster.jpg"
+      )
+    end
+
+    it "returns 422 Unprocessable Entity with an error message" do
+      poster_params = {
+        name: "Duplicate Poster",
+        description: "This is a duplicate",
+        price: 45.00,
+        year: 2020,
+        vintage: false,
+        img_url: "https://example.com/another-duplicate.jpg"
+      }
+
+      headers = { "CONTENT_TYPE" => "application/json" }
+      post "/api/v1/posters", headers: headers, params: JSON.generate(poster: poster_params)
+
+      json_response = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json_response[:errors]).to include("Name has already been taken")
+    end
+  end
+ # ================== Sad Path Can't Update Duplicate Name =================
+  # PATCH Can't Update Duplicate Name
+  describe "PATCH /api/v1/posters/:id with duplicate name" do
+    let!(:existing_poster) do
+      Poster.create!(
+        name: "Existing Poster",
+        description: "Already exists",
+        price: 60.00,
+        year: 2015,
+        vintage: true,
+        img_url: "https://example.com/existing-poster.jpg"
+      )
+    end
+
+    let!(:poster_to_update) do
+      Poster.create!(
+        name: "Poster to Update",
+        description: "Will be updated",
+        price: 40.00,
+        year: 2018,
+        vintage: false,
+        img_url: "https://example.com/poster-to-update.jpg"
+      )
+    end
+
+    it "returns 422 Unprocessable Entity with an error message" do
+      updated_attributes = { name: "Existing Poster" }
+
+      headers = { "CONTENT_TYPE" => "application/json" }
+      patch "/api/v1/posters/#{poster_to_update.id}", headers: headers, params: JSON.generate(poster: updated_attributes)
+
+      json_response = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json_response[:errors]).to include("Name has already been taken")
+    end
+  end
+end
+
+ # ================== DELETE Poster Test =================
   describe "DELETE /api/v1/posters/:id" do
     context "when the poster exists" do
       let!(:poster) do
@@ -144,7 +242,7 @@ RSpec.describe "Poster endpoints", type: :request do
         expect(response).to have_http_status(:no_content)
       end
     end
-
+ # ================== DELETE Does Not Exist Test =================
     context "when the poster does not exist" do
       it "returns a 404 not found status with an error message" do
         delete "/api/v1/posters/9999" # Non-existent ID
@@ -157,6 +255,7 @@ RSpec.describe "Poster endpoints", type: :request do
     end
   end
 
+  # ================== DELETE Test =================
   describe "POST /create" do
     it "can post a new poster" do 
       poster_params = {
@@ -184,6 +283,7 @@ RSpec.describe "Poster endpoints", type: :request do
     end
   end
 
+# ================== Patch/Update Poster Test =================
   describe "PATCH /update" do
     it "can update an existing poster" do
       poster = Poster.create!(
