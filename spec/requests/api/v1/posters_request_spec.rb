@@ -81,7 +81,7 @@ RSpec.describe "Poster endpoints", type: :request do
         data = json_response[:data]
 
         #Koiree: Check that the ID is correct and returned as a string.
-        expect(data[:id]).to eq(poster_id)
+        expect(data[:id]).to eq(poster_id.to_s)
 
         #Koiree: Verify that the type key matches the expected resource type.
         expect(data[:type]).to eq("poster")
