@@ -122,7 +122,7 @@ RSpec.describe "Poster endpoints", type: :request do
       end
     end
   end
-
+# Removed Error Manager pieces from my code- For Kevin
   describe "DELETE /api/v1/posters/:id" do
     context "when the poster exists" do
       let!(:poster) do
