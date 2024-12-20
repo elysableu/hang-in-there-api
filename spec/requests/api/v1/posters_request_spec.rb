@@ -42,7 +42,7 @@ RSpec.describe "Poster endpoints", type: :request do
   end
  
   #Koiree: This RSpec file tests the Posters API endpoints, specifically the "show" and "destroy" actions.
-
+# ================== Show Poster Tests =================
   describe "GET /api/v1/posters/:id" do
     #Koiree: Create test data to ensure there is a poster record in the database for the test cases.
     let!(:poster) do
@@ -101,7 +101,21 @@ RSpec.describe "Poster endpoints", type: :request do
         expect(attributes[:img_url]).to eq("https://gist.github.com/user-attachments/assets/d83e2aa5-b25a-4f9a-bed7-80b854da9bcc")
       end
     end
+# ================== No Invalid Poster Id Edge Tests =================
+    context "when the poster id is invalid" do
+  it "returns a 404 for a string id" do
+    get "/api/v1/posters/invalidID"
 
+    expect(response).to have_http_status(:not_found)
+  end
+
+  it "returns a 404 for a float id" do
+    get "/api/v1/posters/9999.99"
+
+    expect(response).to have_http_status(:not_found)
+  end
+end
+# ================== No Record Edge Tests =================
     #Koiree: Context for when the requested record does not exist.
     context "when the record does not exist" do
       it "returns a not found message" do
@@ -136,21 +150,56 @@ RSpec.describe "Poster endpoints", type: :request do
         )
       end
 
-      it "deletes the poster and returns 204" do
-        expect {
-          delete "/api/v1/posters/#{poster.id}"
-        }.to change { Poster.count }.by(-1)
+    it "deletes the poster and returns 204" do
+      # Ensure the poster count decreases by 1
+      expect {
+        delete "/api/v1/posters/#{poster.id}"
+      }.to change { Poster.count }.by(-1)
 
+      # Expect 204 No Content and an empty response body
+      expect(response).to have_http_status(:no_content)
+      expect(response.body).to be_empty
+    end
+  end
+
+  # ================== Reused ID After Deletion Edge Tests =================
+    context "when the poster id is reused after deletion" do
+      let!(:poster) do
+        Poster.create!(
+          name: "Delete Me Twice",
+          description: "Temporary poster",
+          price: 50.00,
+          year: 2010,
+          vintage: true,
+          img_url: "https://gist.github.com/user-attachments/assets/1f352aed-098f-4663-b35d-6a957dbd02b3"
+        )
+      end
+
+      it "returns 404 when trying to delete again" do
+        delete "/api/v1/posters/#{poster.id}"
         expect(response).to have_http_status(:no_content)
+
+        delete "/api/v1/posters/#{poster.id}"
+        expect(response).to have_http_status(:not_found)
       end
     end
 
+    context "when a SQL injection payload is sent as id" do
+      it "returns 404 and handles injection safely" do
+        payload = CGI.escape("1;DROP TABLE posters;--")
+        delete "/api/v1/posters/#{payload}"
+      end
+    end
+
+    # When the poster does not exist
     context "when the poster does not exist" do
       it "returns a 404 not found status with an error message" do
         delete "/api/v1/posters/9999" # Non-existent ID
 
+        # Expect 404 Not Found
         expect(response).to have_http_status(:not_found)
 
+        # Ensure the error message is properly formatted
         json_response = JSON.parse(response.body, symbolize_names: true)
         expect(json_response[:error]).to eq("Poster not found")
       end
@@ -217,6 +266,70 @@ RSpec.describe "Poster endpoints", type: :request do
       expect(poster_updated.year).to eq(updated_attributes[:year])
       expect(poster_updated.vintage).to eq(updated_attributes[:vintage])
       expect(poster_updated.img_url).to eq(updated_attributes[:img_url])
+    end
+  end
+
+  describe "GET /api/v1/posters?sort=asc" do
+    it "can sort posters by created_at in ascending order" do
+      posterSuccess = Poster.create!(name: "Success", description: "Progress over progression", price: 120.00, year: 2024, vintage: false, img_url: "https://gist.github.com/user-attachments/assets/7adbaca3-c952-49c9-b3ab-1c4dbb6e0fc8")
+      posterFailure = Poster.create!(name: "Failure", description: "Loss over win", price: 150.00, year: 1995, vintage: true, img_url: "https://despair.com/cdn/shop/products/failure-is-not-an-option.jpg?v=1569992574")
+
+      get "/api/v1/posters?sort=asc"
+
+      expect(response).to be_successful
+      posters = JSON.parse(response.body, symbolize_names: true)[:data]
+
+      expect(posters.count).to eq(2)
+
+      expect(posters[0][:id].to_i).to eq(posterSuccess.id)
+      expect(posters[1][:id].to_i).to eq(posterFailure.id)
+    end
+  end
+
+  describe "GET /api/v1/posters?sort=desc" do
+    it "can sort posters by created_at in descending order" do
+      posterSuccess = Poster.create!(name: "Success", description: "Progress over progression", price: 120.00, year: 2024, vintage: false, img_url: "https://gist.github.com/user-attachments/assets/7adbaca3-c952-49c9-b3ab-1c4dbb6e0fc8")
+      posterFailure = Poster.create!(name: "Failure", description: "Loss over win", price: 150.00, year: 1995, vintage: true, img_url: "https://despair.com/cdn/shop/products/failure-is-not-an-option.jpg?v=1569992574")
+
+      get "/api/v1/posters?sort=desc"
+
+      expect(response).to be_successful
+      posters = JSON.parse(response.body, symbolize_names: true)[:data]
+
+      expect(posters.count).to eq(2)
+      
+      expect(posters[0][:id].to_i).to eq(posterFailure.id)
+      expect(posters[1][:id].to_i).to eq(posterSuccess.id)
+    end
+  end
+  
+  describe " GET /count" do
+    before(:each) do
+      Poster.create(
+        name: "Authenticity",
+        description: "Truly being yourself in the face of adversity",
+        price: 69.99,
+        year: 1978,
+        vintage: true,
+        img_url: "https://davidirvine.com/living-and-leading-with-authenticity-how-weve-missed-the-mark-and-how-we-can-correct-it/"
+      )
+      
+      Poster.create(
+        name: "???????",
+        description: "Yay more confusion",
+        price: 19.99,
+        year: 2000,
+        vintage: false,
+        img_url: "https://media.npr.org/assets/img/2015/12/14/confused-2eb86f2e782cd35f3932f9bd34e48788d0741e9d.jpg"
+      )
+    end
+
+    it "can count existing posters" do
+      get "/api/v1/posters"
+      posters = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to be_successful
+      expect(posters[:meta][:count]).to eq(2)
     end
   end
 end
