@@ -43,7 +43,11 @@ RSpec.describe "Poster endpoints", type: :request do
   end
  
   #Koiree: This RSpec file tests the Posters API endpoints, specifically the "show" and "destroy" actions.
+<<<<<<< HEAD
   # ================== Show Endpoint =================
+=======
+# ================== Show Poster Tests =================
+>>>>>>> main
   describe "GET /api/v1/posters/:id" do
     #Koiree: Create test data to ensure there is a poster record in the database for the test cases.
     let!(:poster) do
@@ -103,10 +107,27 @@ RSpec.describe "Poster endpoints", type: :request do
         expect(attributes[:img_url]).to eq("https://gist.github.com/user-attachments/assets/d83e2aa5-b25a-4f9a-bed7-80b854da9bcc")
       end
     end
+# ================== No Invalid Poster Id Edge Tests =================
+    context "when the poster id is invalid" do
+  it "returns a 404 for a string id" do
+    get "/api/v1/posters/invalidID"
 
+<<<<<<< HEAD
     # ================== Sad Path Tests =================
 
     # ================== Sad Path: Record Not Found =================
+=======
+    expect(response).to have_http_status(:not_found)
+  end
+
+  it "returns a 404 for a float id" do
+    get "/api/v1/posters/9999.99"
+
+    expect(response).to have_http_status(:not_found)
+  end
+end
+# ================== No Record Edge Tests =================
+>>>>>>> main
     #Koiree: Context for when the requested record does not exist.
     context "when the record does not exist" do
       it "returns a not found message" do
@@ -274,7 +295,12 @@ end
         delete "/api/v1/posters/#{payload}"
       end
     end
+<<<<<<< HEAD
  # ================== DELETE Does Not Exist Test =================
+=======
+
+    # When the poster does not exist
+>>>>>>> main
     context "when the poster does not exist" do
       it "returns a 404 not found status with an error message" do
         delete "/api/v1/posters/9999" # Non-existent ID
