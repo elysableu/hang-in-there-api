@@ -6,7 +6,7 @@ RSpec.describe "Poster endpoints", type: :request do
     it "can send a list of posters" do
       # pending "add some examples to (or delete) #{__FILE__}"
       Poster.create!(name: "Success", description: "Progress over progression", price: 120.00, year: 2024, vintage: false, img_url: "https://gist.github.com/user-attachments/assets/7adbaca3-c952-49c9-b3ab-1c4dbb6e0fc8")
-      Poster.create!(name: "Failure", description: "Loss over win", price: 150.00, year: 1995, vintage: true, img_url: "https://despair.com/cdn/shop/products/failure-is-not-an-option.jpg?v=1569992574")
+      Poster.create!(name: "Failure", description: "Wow, a different error message... Finally some progress!", price: 150.00, year: 1995, vintage: true, img_url: "https://gist.github.com/user-attachments/assets/d83e2aa5-b25a-4f9a-bed7-80b854da9bcc")
 
       get "/api/v1/posters"
 
@@ -48,11 +48,11 @@ RSpec.describe "Poster endpoints", type: :request do
     let!(:poster) do
       Poster.create!(
         name: "FAILURE", 
-        description: "Why bother trying? It's probably not worth it.", 
+        description: "Wow, a different error message... Finally some progress!", 
         price: 68.00, 
         year: 2019, 
         vintage: true, 
-        img_url: "https://images.unsplash.com/photo-1620401537439-98e94c004b0d"
+        img_url: "https://gist.github.com/user-attachments/assets/d83e2aa5-b25a-4f9a-bed7-80b854da9bcc"
       )
     end
 
@@ -94,11 +94,11 @@ RSpec.describe "Poster endpoints", type: :request do
 
         #Koiree: Validate each field in the "attributes" section.
         expect(attributes[:name]).to eq("FAILURE")
-        expect(attributes[:description]).to eq("Why bother trying? It's probably not worth it.")
+        expect(attributes[:description]).to eq("Wow, a different error message... Finally some progress!")
         expect(attributes[:price]).to eq(68.00)
         expect(attributes[:year]).to eq(2019)
         expect(attributes[:vintage]).to be true
-        expect(attributes[:img_url]).to eq("https://images.unsplash.com/photo-1620401537439-98e94c004b0d")
+        expect(attributes[:img_url]).to eq("https://gist.github.com/user-attachments/assets/d83e2aa5-b25a-4f9a-bed7-80b854da9bcc")
       end
     end
 
@@ -132,7 +132,7 @@ RSpec.describe "Poster endpoints", type: :request do
           price: 50.00,
           year: 2010,
           vintage: true,
-          img_url: "https://example.com/delete-me.jpg"
+          img_url: "https://gist.github.com/user-attachments/assets/1f352aed-098f-4663-b35d-6a957dbd02b3"
         )
       end
 
@@ -156,54 +156,6 @@ RSpec.describe "Poster endpoints", type: :request do
       end
     end
   end
-
-=begin
- Koiree: When the Error Manager is implemented NOT Complete
-  # # DELETE Endpoint Tests
-  # describe "DELETE /api/v1/posters/:id" do
-  #   let!(:poster) do
-  #     Poster.create!(
-  #       name: "Delete Me",
-  #       description: "This poster is temporary.",
-  #       price: 50.00,
-  #       year: 2010,
-  #       vintage: true,
-  #       img_url: "https://example.com/delete-me.jpg"
-  #     )
-  #   end
-
-  #   let(:poster_id) { poster.id }
-
-  #   context "when the poster exists" do
-  #     it "deletes the poster and returns a 204 status" do
-  #       # Ensure the poster exists before deletion
-  #       expect(Poster.find_by(id: poster_id)).not_to be_nil
-
-  #       # Ensure the poster count decreases by 1
-  #       expect {
-  #         delete "/api/v1/posters/#{poster_id}"
-  #       }.to change { Poster.count }.by(-1)
-
-  #       # Ensure the status code is 204 No Content
-  #       expect(response).to have_http_status(:no_content)
-  #     end
-  #   end
-
-  #   context "when the poster does not exist" do
-  #     it "returns a 404 not found status with an error message" do
-  #       delete "/api/v1/posters/9999" # Non-existent poster ID
-
-  #       # Ensure the status is 404 Not Found
-  #       expect(response).to have_http_status(:not_found)
-
-  #       json_response = JSON.parse(response.body, symbolize_names: true)
-
-  #       # Ensure the correct error message is returned
-  #       expect(json_response[:error]).to eq("Poster not found")
-  #     end
-  #   end
-  # end
-=end
 
   describe "POST /create" do
     it "can post a new poster" do 
