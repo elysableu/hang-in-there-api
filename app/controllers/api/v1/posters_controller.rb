@@ -5,7 +5,16 @@ class Api::V1::PostersController < ApplicationController
     sort = { "desc" => :desc, "asc" => :asc }[params[:sort]]   
     # fetch the poster if there is a parameter and if not it will default to fetching all with no parameters
     posters = sort ? Poster.order(created_at: sort) : Poster.all
-    render json: PosterSerializer.format_posters(posters, {count: Poster.all.count}))
+    
+    if params[:name].present? 
+      posters = Poster.where("name ILIKE ?", "%#{params[:name]}%")
+    elsif params[:min_price].present? 
+      posters = Poster.where("price >= ?", params[:min_price])
+    elsif params[:max_price].present?
+      posters = Poster.where("price <= ?", params[:max_price])
+    end
+
+    render json: PosterSerializer.format_posters(posters, {count: posters.count})
   end
   
  # GET /api/v1/posters/:id
