@@ -5,7 +5,7 @@ class Api::V1::PostersController < ApplicationController
     sort = { "desc" => :desc, "asc" => :asc }[params[:sort]]   
     # fetch the poster if there is a parameter and if not it will default to fetching all with no parameters
     posters = sort ? Poster.order(created_at: sort) : Poster.all
-    
+
     if params[:name].present? 
       posters = Poster.where("name ILIKE ?", "%#{params[:name]}%")
     elsif params[:min_price].present? 
