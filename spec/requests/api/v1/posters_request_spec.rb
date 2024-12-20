@@ -158,7 +158,7 @@ RSpec.describe "Poster endpoints", type: :request do
         price: 50.00,
         year: 2010,
         vintage: true,
-        img_url: "https://example.com/duplicate-poster.jpg"
+        img_url: "https://gist.github.com/user-attachments/assets/608d64ce-abc1-4ebe-b8f4-aac27d927c9f"
       )
     end
 
@@ -169,7 +169,7 @@ RSpec.describe "Poster endpoints", type: :request do
         price: 45.00,
         year: 2020,
         vintage: false,
-        img_url: "https://example.com/another-duplicate.jpg"
+        img_url: "https://gist.github.com/user-attachments/assets/608d64ce-abc1-4ebe-b8f4-aac27d927c9f"
       }
 
       headers = { "CONTENT_TYPE" => "application/json" }
@@ -191,7 +191,7 @@ RSpec.describe "Poster endpoints", type: :request do
         price: 60.00,
         year: 2015,
         vintage: true,
-        img_url: "https://example.com/existing-poster.jpg"
+        img_url: "https://gist.github.com/user-attachments/assets/1b1a7940-1ed8-41fa-ad03-9897bc21809f"
       )
     end
 
@@ -202,7 +202,7 @@ RSpec.describe "Poster endpoints", type: :request do
         price: 40.00,
         year: 2018,
         vintage: false,
-        img_url: "https://example.com/poster-to-update.jpg"
+        img_url: "https://gist.github.com/user-attachments/assets/2a2af162-1f44-473e-ad7a-5b992659b41e"
       )
     end
 
