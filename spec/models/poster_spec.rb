@@ -25,7 +25,7 @@ RSpec.describe Poster, type: :model do
     # Uniqueness Validation (Case Insensitive)
     it "validates uniqueness of name (case-insensitive)" do
       Poster.create!(
-        name: "Sample Poster", 
+        name: "Case Senistive Poster", 
         description: "Another Description", 
         price: 10.00, 
         year: 2020, 
